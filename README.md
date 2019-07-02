@@ -1,2 +1,2 @@
 # tuts
-Various tutorials I've taken and completed.
+various tutorials and exercises completed by me
