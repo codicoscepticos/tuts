@@ -12,6 +12,18 @@ const regexpsValues = Object.values(regexps);
 const regexpsNum = regexpsKeys.length;
 
 const specialForms = Object.create(null);
+const topScope = Object.create(null);
+topScope.true = true;
+topScope.false = false;
+
+["+", "-", "*", "/", "===", "<", ">"].forEach(op => {
+  topScope[op] = Function("a, b", `return a ${op} b;`);
+});
+
+topScope.print = value => {
+  console.log(value);
+  return value;
+};
 
 // It trims leading spaces inside a string.
 function skipSpace(string) {
@@ -148,7 +160,7 @@ function evaluate(expr, scope) {
     returnValue = expr.value;
   } else if (expr.type === wordStr) {
     if (expr.name in scope) {
-      returnValue = scope[expr.name]; // Fetch the binding value.
+      returnValue = scope[expr.name]; // Fetch the binded value.
     } else {
       throw new ReferenceError(`Undefined binding: ${expr.name}`);
     }
@@ -170,6 +182,8 @@ function evaluate(expr, scope) {
   }
   return returnValue;
 }
+
+// #region SPECIAL FORMS
 
 // This is similar to JS's ternary ?: operator.
 specialForms.if = (args, scope) => {
@@ -211,8 +225,58 @@ specialForms.define = (args, scope) => {
   return value;
 };
 
-console.log(parse('"this is a string"'));
-console.log(parse("+(+(10,20), *(10,20))"));
-console.log(parse("5"));
-console.log(parse("+(10, 20)"));
-console.log(parse("if()"));
+specialForms.fun = (args, scope) => {
+  // console.log(arguments);
+  console.log(args);
+  console.log(args.length);
+  if (!args.length) {
+    throw new SyntaxError("Functions need a body");
+  }
+
+  const body = args[args.length - 1];
+
+  const params = args.slice(0, args.length - 1).map(expr => {
+    if (expr.type !== "word") {
+      throw new SyntaxError("Parameter names must be words");
+    }
+    return expr.name;
+  });
+
+  return function() {
+    console.log(arguments);
+    console.log(params);
+    if (arguments.length !== params.length) {
+      throw new TypeError("Wrong number of arguments");
+    }
+    const localScope = Object.create(scope);
+    for (let i = 0; i < arguments.length; i += 1) {
+      localScope[params[i]] = arguments[i];
+    }
+    return evaluate(body, localScope);
+  };
+};
+
+// #endregion SPECIAL FORMS
+
+function run(program) {
+  return evaluate(parse(program), Object.create(topScope));
+}
+
+run(`
+do(
+  define(total, 0),
+  define(count, 1),
+  while(<(count, 11),
+    do(
+      define( total, +(total, count) ),
+      define( count, +(count, 1) )
+    )
+  ),
+  print(total)
+)
+`);
+
+run(`
+do(define(plusOne, fun(a, b, +(a, b))),
+   print(plusOne(10, 12)))
+`);
