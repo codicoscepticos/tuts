@@ -226,10 +226,7 @@ specialForms.define = (args, scope) => {
 };
 
 specialForms.fun = (args, scope) => {
-  // console.log(arguments);
-  console.log(args);
-  console.log(args.length);
-  if (!args.length) {
+  if (args.length === 0) {
     throw new SyntaxError("Functions need a body");
   }
 
@@ -242,15 +239,13 @@ specialForms.fun = (args, scope) => {
     return expr.name;
   });
 
-  return function() {
-    console.log(arguments);
-    console.log(params);
-    if (arguments.length !== params.length) {
+  return (...parameters) => {
+    if (parameters.length !== params.length) {
       throw new TypeError("Wrong number of arguments");
     }
     const localScope = Object.create(scope);
-    for (let i = 0; i < arguments.length; i += 1) {
-      localScope[params[i]] = arguments[i];
+    for (let i = 0; i < parameters.length; i += 1) {
+      localScope[params[i]] = parameters[i];
     }
     return evaluate(body, localScope);
   };
@@ -277,6 +272,8 @@ do(
 `);
 
 run(`
-do(define(plusOne, fun(a, b, +(a, b))),
-   print(plusOne(10, 12)))
+do(
+  define( plusOne, fun(a, b, +(a, b)) ),
+  print(plusOne(10, 12))
+)
 `);
