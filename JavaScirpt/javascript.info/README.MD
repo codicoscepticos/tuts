@@ -11,6 +11,6 @@ This folder contains solutions to the tasks.
 
 ## Variables
 
-- [Working with variables](variables\task1.html)
-- [Giving the right name](variables\task2.html)
-- [Uppercase const?](variables\task3.md)
+- [Working with variables](variables/task1.html)
+- [Giving the right name](variables/task2.html)
+- [Uppercase const?](variables/task3.md)
